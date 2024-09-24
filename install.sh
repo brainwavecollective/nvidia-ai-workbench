@@ -16,6 +16,8 @@ check_ubuntu_version() {
     if [ "$version" != "22.04" ] && [ "$version" != "24.04" ]; then
         echo "Error: This script only supports Ubuntu 22.04 and 24.04"
         exit 1
+	else 
+		echo "AOK: Ubuntu looks good"
     fi
 }
 
@@ -25,17 +27,22 @@ check_ram() {
     if [ "$total_ram" -lt 16 ]; then
         echo "Error: Minimum 16 GB of RAM required. Current RAM: ${total_ram} GB"
         exit 1
+	else 
+		echo "AOK: Ubuntu looks good"
     fi
 }
 
 # Function to check disk space
 check_disk_space() {
     available_space=$(df -BM / | awk 'NR==2 {print $4}' | sed 's/M//')
-    if [ "$available_space" -lt 30500 ]; then
-        echo "Error: Minimum 30.5 GB of disk space required. Available space: ${available_space} MB"
+    
+    if [ "$available_space" -lt 1024 ]; then
+        echo "Error: Minimum 1 GB of disk space required for basic installation. Available space: ${available_space} MB"
         exit 1
-    elif [ "$available_space" -lt 40500 ]; then
-        echo "Warning: Recommended 40.5 GB of disk space. Available space: ${available_space} MB"
+    elif [ "$available_space" -lt 30720 ]; then  # 30 * 1024
+        echo "Warning: AI Workbench requires at least 30 GB of disk space for containers. Available space: ${available_space} MB"
+    elif [ "$available_space" -lt 40960 ]; then  # 40 * 1024
+        echo "Warning: AI Workbench recommends at least 40 GB of disk space. Available space: ${available_space} MB"
     fi
 }
 
