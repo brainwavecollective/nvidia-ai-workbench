@@ -132,4 +132,6 @@ USER_GID=$(id -g "$INSTALL_USER")
 echo "Installing NVIDIA AI Workbench..."
 $SUDO -E "$INSTALL_DIR/nvwb-cli" install --accept --drivers --noninteractive --docker --gid $USER_GID --uid $USER_UID
 
-echo "NVIDIA AI Workbench installation completed."
+echo "NVIDIA AI Workbench installation completed. You can now connect to this instance from your local AI Workbench client."
+
+echo "Use your SSH key and configure access to this instance with the user: $INSTALL_USER"
