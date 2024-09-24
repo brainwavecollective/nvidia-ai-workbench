@@ -33,8 +33,8 @@ ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
 
 # Providers
 Runpod - NOGO cool and all but runs in a container  
-Lamdbda Labs - working
-Massed Compute 
+Lamdbda Labs - confirmed 
+Massed Compute - confirmed
 	RTX A6000 [Spot]
 	Base Ubuntu Desktop 22.04
 
