@@ -24,10 +24,10 @@ The local installation tends to be pretty straightforward, [follow the local ins
 ## Remote Install 
 There are many GPU providers available. The first goal of this project is to make it easier for you to use those resource by simplifying the remote installation process. Because remote environments vary widely, the installation also varies widely.  
 
-Once you have your remote server setup, execute the following:  
-`git clone https://github.com/brainwavecollective/nvidia-ai-workbench.git`
-`#add your SSH Key to: ~/nvidia-ai-workbench/my_public_key.pub`
-`./nvidia-ai-workbench/install.sh`
+Once you have your remote server setup, execute the following:   
+`git clone https://github.com/brainwavecollective/nvidia-ai-workbench.git`  
+`#add your SSH Key to: ~/nvidia-ai-workbench/my_public_key.pub`  
+`./nvidia-ai-workbench/install.sh`   
 
 
 
