@@ -91,6 +91,9 @@ USER_UID=$(id -u "$INSTALL_USER")
 USER_GID=$(id -g "$INSTALL_USER")
 
 echo "Installing NVIDIA AI Workbench..."
-$SUDO -E "$INSTALL_DIR/nvwb-cli" install --accept --drivers  --noninteractive --podman --gid $USER_GID --uid $USER_UID
+#$SUDO -E "$INSTALL_DIR/nvwb-cli" install --accept --drivers  --noninteractive --podman --gid $USER_GID --uid $USER_UID
+
+$SUDO -E "$INSTALL_DIR/nvwb-cli" install --accept --drivers  --noninteractive --docker --gid $USER_GID --uid $USER_UID
+
 
 echo "NVIDIA AI Workbench installation completed."
