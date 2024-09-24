@@ -1,0 +1,11 @@
+# Ignore the file containing the user's actual public key
+my_public_key.pub
+
+# Optional: ignore common operating system and editor files
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Optional: ignore any log files that might be generated
+*.log
