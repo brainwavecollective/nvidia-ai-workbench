@@ -46,6 +46,12 @@ check_disk_space() {
     fi
 }
 
+# update this
+#check_env() {
+#	systemd-detect-virt
+#	> can't be "docker" but want to print it out regardless
+#}
+
 # Main script starts here
 check_ubuntu_version
 check_ram
@@ -83,6 +89,8 @@ EOF
 # Get the uid and gid for the INSTALL_USER (to be used for the install script)
 USER_UID=$(id -u "$INSTALL_USER")
 USER_GID=$(id -g "$INSTALL_USER")
-$SUDO -E "$INSTALL_DIR/nvwb-cli" install -h $USER_UID $USER_GID $etc...getcommand
+
+echo "Installing NVIDIA AI Workbench..."
+$SUDO -E "$INSTALL_DIR/nvwb-cli" install --accept --drivers  --noninteractive --podman --gid $USER_GID --uid $USER_UID
 
 echo "NVIDIA AI Workbench installation completed."
