@@ -35,8 +35,8 @@ Once you have your remote server setup, execute the following:
 | Provider | Status | Notes |
 |----------|--------|-------|
 | Runpod | Does not work | We like the provider generally but can't access host b/c we're isolated in a container |
-| Lambda Labs | Confirmed |  |
-| Massed Compute | Confirmed | RTX A6000 [Spot], Base Ubuntu Desktop 22.04 |
+| Lambda Labs | Confirmed | Launch Jupyter server and then launch terminal through UI |
+| Massed Compute | Confirmed | RTX A6000 [Spot], Base Ubuntu Desktop 22.04 (navigate to desktop URL and open terminal) |
 
 
 
