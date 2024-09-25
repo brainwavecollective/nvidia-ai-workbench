@@ -279,7 +279,7 @@ log "SSH setup completed for $INSTALL_USER"
 # Switch to the INSTALL_USER for the rest of the script
 log "Switching to user $INSTALL_USER for the remainder of the installation"
 $SUDO su - $INSTALL_USER bash << 'EOF' | tee "$LOG_FILE"
-#!/bin/bash
+
 # Function for logging (redefined for the new user context)
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] (User: $(whoami)) \$1"
