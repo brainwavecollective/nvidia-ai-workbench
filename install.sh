@@ -342,6 +342,6 @@ done
 
 log "Script execution completed"
 EOF
-
+)"
 
 log "Installation script finished"
