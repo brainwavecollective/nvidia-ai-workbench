@@ -5,17 +5,20 @@ set -e
 # Set some vars
 INSTALL_USER=nvwb-server
 ORIGINAL_USER=$(whoami)
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+
+# Set up SUDO variable
+if [ "$(id -u)" -eq 0 ]; then
+    SUDO=""
+else
+    SUDO="sudo"
+fi
 
 # Function for logging
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] (User: $(whoami)) $1"
 }
-
-# Check if running as root
-if [ "$(id -u)" -ne 0 ]; then
-    echo "This script must be run as root. Please use sudo."
-    exit 1
-fi
 
 # Function to check Ubuntu version
 check_ubuntu_version() {
@@ -88,16 +91,16 @@ check_virtual
 log "... installation requirements check complete."
 
 log "Updating and installing necessary packages..."
-apt update
-apt install -y pciutils sudo
+$SUDO apt update
+$SUDO apt install -y pciutils sudo
 log "... packages installed successfully"
 
 # Check if Docker is installed
 if command -v docker &> /dev/null; then
     log "Docker is installed. Configuring NVIDIA Container Toolkit..."
-    nvidia-ctk runtime configure --runtime=docker
-    apt install -y nvidia-container-toolkit
-    systemctl restart docker
+    $SUDO nvidia-ctk runtime configure --runtime=docker
+    $SUDO apt install -y nvidia-container-toolkit
+    $SUDO systemctl restart docker
     log "NVIDIA Container Toolkit configured"
 else
     log "Docker is not installed. Skipping NVIDIA Container Toolkit configuration."
@@ -106,10 +109,10 @@ fi
 # Create user and add to sudo group
 if ! id "$INSTALL_USER" &>/dev/null; then
     log "Creating user $INSTALL_USER"
-    useradd -m -s /bin/bash "$INSTALL_USER"
-    usermod -aG sudo "$INSTALL_USER"
+    $SUDO useradd -m -s /bin/bash "$INSTALL_USER"
+    $SUDO usermod -aG sudo "$INSTALL_USER"
     if command -v docker &> /dev/null; then
-        usermod -aG docker "$INSTALL_USER"
+        $SUDO usermod -aG docker "$INSTALL_USER"
         log "Added $INSTALL_USER to docker group"
     fi
     log "User $INSTALL_USER created and configured"
@@ -119,17 +122,24 @@ fi
 
 # Set up SSH for the new user
 log "Setting up SSH for $INSTALL_USER"
-mkdir -p /home/$INSTALL_USER/.ssh
-chmod 700 /home/$INSTALL_USER/.ssh
-touch /home/$INSTALL_USER/.ssh/authorized_keys
-chmod 600 /home/$INSTALL_USER/.ssh/authorized_keys
-cat /home/$ORIGINAL_USER/my_public_key.pub >> /home/$INSTALL_USER/.ssh/authorized_keys
-chown -R $INSTALL_USER:$INSTALL_USER /home/$INSTALL_USER/.ssh
+$SUDO mkdir -p /home/$INSTALL_USER/.ssh
+$SUDO chmod 755 /home/$INSTALL_USER  # Ensure the home directory is accessible
+$SUDO chmod 644 "$SCRIPT_DIR/my_public_key.pub" # Ensure the public key can be added to authorized keys
+
+# Switch to the new user for the rest of the SSH setup
+$SUDO su - $INSTALL_USER << EOF
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+touch ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+cat $SCRIPT_DIR/my_public_key.pub >> ~/.ssh/authorized_keys
+EOF
+
 log "SSH setup completed for $INSTALL_USER"
 
 # Switch to the INSTALL_USER for the rest of the script
 log "Switching to user $INSTALL_USER for the remainder of the installation"
-su - $INSTALL_USER << EOF
+$SUDO su - $INSTALL_USER << EOF
 
 # Function for logging (redefined for the new user context)
 log() {
