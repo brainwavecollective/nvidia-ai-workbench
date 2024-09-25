@@ -282,27 +282,27 @@ $SUDO su - $INSTALL_USER -c "$(cat << 'EOF'
 
 # Function for logging (redefined for the new user context)
 log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] (User: $(whoami)) \$1"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] (User: $(whoami)) $1"
 }
 
 # Install NVIDIA AI Workbench
-INSTALL_DIR="\$HOME/.nvwb/bin"
-log "Creating installation directory: \$INSTALL_DIR"
-mkdir -p "\$INSTALL_DIR"
+INSTALL_DIR="$HOME/.nvwb/bin"
+log "Creating installation directory: $INSTALL_DIR"
+mkdir -p "$INSTALL_DIR"
 
 log "Downloading NVIDIA AI Workbench CLI"
-curl -L https://workbench.download.nvidia.com/stable/workbench-cli/$(curl -L -s https://workbench.download.nvidia.com/stable/workbench-cli/LATEST)/nvwb-cli-$(uname)-$(uname -m) --output "\$INSTALL_DIR/nvwb-cli"
-chmod +x "\$INSTALL_DIR/nvwb-cli"
+curl -L https://workbench.download.nvidia.com/stable/workbench-cli/$(curl -L -s https://workbench.download.nvidia.com/stable/workbench-cli/LATEST)/nvwb-cli-$(uname)-$(uname -m) --output "$INSTALL_DIR/nvwb-cli"
+chmod +x "$INSTALL_DIR/nvwb-cli"
 log "NVIDIA AI Workbench CLI downloaded and made executable"
-log "CLI file details: \$(ls -l "\$INSTALL_DIR/nvwb-cli")"
+log "CLI file details: $(ls -l "$INSTALL_DIR/nvwb-cli")"
 
 # Verify the installation directory and CLI exist
 log "Verifying installation"
-if [ -d "\$INSTALL_DIR" ] && [ -x "\$INSTALL_DIR/nvwb-cli" ]; then
+if [ -d "$INSTALL_DIR" ] && [ -x "$INSTALL_DIR/nvwb-cli" ]; then
     log "Installation directory and CLI verified"
 else
     log "ERROR: Installation directory or CLI not found or not executable"
-    log "Directory contents: \$(ls -la "\$INSTALL_DIR")"
+    log "Directory contents: $(ls -la "$INSTALL_DIR")"
     exit 1
 fi
 
@@ -311,10 +311,10 @@ USER_UID=$(id -u)
 USER_GID=$(id -g)
 
 log "Installing NVIDIA AI Workbench..."
-sudo -E "\$INSTALL_DIR/nvwb-cli" install --accept --drivers --noninteractive --docker --gid \$USER_GID --uid \$USER_UID
+sudo -E "$INSTALL_DIR/nvwb-cli" install --accept --drivers --noninteractive --docker --gid $USER_GID --uid $USER_UID
 
 log "Verifying workbench service..."
-if "\$INSTALL_DIR/nvwb-cli" status | grep -q "Workbench is running"; then
+if "$INSTALL_DIR/nvwb-cli" status | grep -q "Workbench is running"; then
     log "Workbench service is running correctly"
 else
     log "ERROR: Workbench service is not running as expected"
@@ -327,17 +327,17 @@ log "Use your SSH key and configure access to this instance with the user: $INST
 # Final check for critical directories and files
 log "Performing final checks..."
 critical_paths=(
-    "\$HOME/.nvwb"
-    "\$HOME/.nvwb/bin"
-    "\$HOME/.nvwb/bin/nvwb-cli"
-    "\$HOME/.nvwb/bin/wb-svc"
+    "$HOME/.nvwb"
+    "$HOME/.nvwb/bin"
+    "$HOME/.nvwb/bin/nvwb-cli"
+    "$HOME/.nvwb/bin/wb-svc"
 )
 
-for path in "\${critical_paths[@]}"; do
-    if [ -e "\$path" ]; then
-        log "Verified: \$path exists"
+for path in "${critical_paths[@]}"; do
+    if [ -e "$path" ]; then
+        log "Verified: $path exists"
     else
-        log "WARNING: \$path does not exist"
+        log "WARNING: $path does not exist"
     fi
 done
 
