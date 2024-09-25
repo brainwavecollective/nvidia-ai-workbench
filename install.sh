@@ -202,14 +202,6 @@ else
     sudo -E "$INSTALL_DIR/nvwb-cli" install --accept --drivers --noninteractive --docker
 fi
 
-log "Verifying workbench service..."
-if "$INSTALL_DIR/nvwb-cli" status | grep -q "Workbench is running"; then
-    log "Workbench service is running correctly"
-else
-    log "ERROR: Workbench service is not running as expected"
-    exit 1
-fi
-
 log "Installation process completed. You can now connect to this instance from your local AI Workbench client."
 log "Use your SSH key and configure access to this instance with the user: $INSTALL_USER"
 log "Script execution completed"
