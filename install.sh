@@ -291,7 +291,11 @@ log "Creating installation directory: \$INSTALL_DIR"
 mkdir -p "\$INSTALL_DIR"
 
 log "Downloading NVIDIA AI Workbench CLI"
-curl -L https://workbench.download.nvidia.com/stable/workbench-cli/\$(curl -L -s https://workbench.download.nvidia.com/stable/workbench-cli/LATEST)/nvwb-cli-\$(uname)-\$(uname -m) --output "\$INSTALL_DIR/nvwb-cli"
+#curl -L https://workbench.download.nvidia.com/stable/workbench-cli/\$(curl -L -s https://workbench.download.nvidia.com/stable/workbench-cli/LATEST)/nvwb-cli-\$(uname)-\$(uname -m) --output "\$INSTALL_DIR/nvwb-cli"
+
+LATEST_VERSION=\$(curl -L -s https://workbench.download.nvidia.com/stable/workbench-cli/LATEST)
+curl -L https://workbench.download.nvidia.com/stable/workbench-cli/\$LATEST_VERSION/nvwb-cli-\$(uname)-\$(uname -m) --output "\$INSTALL_DIR/nvwb-cli"
+
 chmod +x "\$INSTALL_DIR/nvwb-cli"
 log "NVIDIA AI Workbench CLI downloaded and made executable"
 log "CLI file details: \$(ls -l "\$INSTALL_DIR/nvwb-cli")"
