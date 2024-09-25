@@ -291,7 +291,6 @@ log "Creating installation directory: \$INSTALL_DIR"
 mkdir -p "\$INSTALL_DIR"
 
 log "Downloading NVIDIA AI Workbench CLI"
-#curl -L https://workbench.download.nvidia.com/stable/workbench-cli/\$(curl -L -s https://workbench.download.nvidia.com/stable/workbench-cli/LATEST)/nvwb-cli-\$(uname)-\$(uname -m) --output "\$INSTALL_DIR/nvwb-cli"
 curl -L https://workbench.download.nvidia.com/stable/workbench-cli/$(curl -L -s https://workbench.download.nvidia.com/stable/workbench-cli/LATEST)/nvwb-cli-$(uname)-$(uname -m) --output "\$INSTALL_DIR/nvwb-cli"
 chmod +x "\$INSTALL_DIR/nvwb-cli"
 log "NVIDIA AI Workbench CLI downloaded and made executable"
@@ -308,8 +307,8 @@ else
 fi
 
 # Get the uid and gid for the INSTALL_USER
-USER_UID=\$(id -u)
-USER_GID=\$(id -g)
+USER_UID=$(id -u)
+USER_GID=$(id -g)
 
 log "Installing NVIDIA AI Workbench..."
 sudo -E "\$INSTALL_DIR/nvwb-cli" install --accept --drivers --noninteractive --docker --gid \$USER_GID --uid \$USER_UID
