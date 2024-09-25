@@ -112,11 +112,21 @@ if ! id "$INSTALL_USER" &>/dev/null; then
     log "Creating user $INSTALL_USER"
     $SUDO useradd -m -s /bin/bash "$INSTALL_USER"
     $SUDO usermod -aG sudo "$INSTALL_USER"
+    
+    # Add the user to the docker group if docker is installed
     if command -v docker &> /dev/null; then
         $SUDO usermod -aG docker "$INSTALL_USER"
         log "Added $INSTALL_USER to docker group"
     fi
+    
     log "User $INSTALL_USER created and configured"
+    
+    # Add the user to the sudoers file with NOPASSWD
+    log "Granting $INSTALL_USER passwordless sudo access"
+    echo "$INSTALL_USER ALL=(ALL) NOPASSWD:ALL" | $SUDO tee /etc/sudoers.d/$INSTALL_USER > /dev/null
+    $SUDO chmod 0440 /etc/sudoers.d/$INSTALL_USER
+    log "Passwordless sudo access granted to $INSTALL_USER"
+    
 else
     log "User $INSTALL_USER already exists"
 fi
