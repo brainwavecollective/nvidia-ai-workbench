@@ -205,7 +205,7 @@ fi
 SERVER_IP=$(hostname -I | awk '{print $1}')
 
 log "Installation process completed. You can now connect to this instance from your local AI Workbench client."
-log "Use your SSH key and configure access to this instance. The user is: $(whoami) and the address is probably: $SERVER_IP"
+log "You will need to confirm your host but connection info is probably: $(whoami)@$SERVER_IP"
 EOF
 )"
 
