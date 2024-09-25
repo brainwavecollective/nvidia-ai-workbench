@@ -196,8 +196,11 @@ fi
 USER_UID=$(id -u)
 USER_GID=$(id -g)
 
-log "Installing NVIDIA AI Workbench..."
-sudo -E "$INSTALL_DIR/nvwb-cli" install --accept --drivers --noninteractive --docker --gid $USER_GID --uid $USER_UID
+if [ "$USER_UID" -eq 0 ]; then
+    "$INSTALL_DIR/nvwb-cli" install --accept --drivers --noninteractive --docker --gid $USER_GID --uid $USER_UID
+else
+    sudo -E "$INSTALL_DIR/nvwb-cli" install --accept --drivers --noninteractive --docker
+fi
 
 log "Verifying workbench service..."
 if "$INSTALL_DIR/nvwb-cli" status | grep -q "Workbench is running"; then
@@ -209,24 +212,6 @@ fi
 
 log "Installation process completed. You can now connect to this instance from your local AI Workbench client."
 log "Use your SSH key and configure access to this instance with the user: $INSTALL_USER"
-
-# Final check for critical directories and files
-log "Performing final checks..."
-critical_paths=(
-    "$HOME/.nvwb"
-    "$HOME/.nvwb/bin"
-    "$HOME/.nvwb/bin/nvwb-cli"
-    "$HOME/.nvwb/bin/wb-svc"
-)
-
-for path in "${critical_paths[@]}"; do
-    if [ -e "$path" ]; then
-        log "Verified: $path exists"
-    else
-        log "WARNING: $path does not exist"
-    fi
-done
-
 log "Script execution completed"
 EOF
 )"
