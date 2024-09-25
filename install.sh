@@ -1,20 +1,20 @@
 #!/bin/bash
 
+set -e
+
 # Set some vars
 INSTALL_USER=nvwb-server
+ORIGINAL_USER=$(whoami)
 
 # Function for logging
 log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] (User: $(whoami)) $1"
 }
 
 # Check if running as root
-if [ "$(id -u)" -eq 0 ]; then
-    SUDO=""
-    log "Running as root"
-else
-    log "Not running as root, sudo permissions required"
-    SUDO="sudo"
+if [ "$(id -u)" -ne 0 ]; then
+    echo "This script must be run as root. Please use sudo."
+    exit 1
 fi
 
 # Function to check Ubuntu version
@@ -80,23 +80,24 @@ check_virtual() {
 }
 
 # Main script starts here
-log "Starting installation process"
+log "Checking installation requirements..."
 check_ubuntu_version
 check_ram
 check_disk_space
 check_virtual  
+log "... installation requirements check complete."
 
-log "Updating and installing necessary packages"
-$SUDO apt update
-$SUDO apt install -y pciutils sudo
-log "Packages installed successfully"
+log "Updating and installing necessary packages..."
+apt update
+apt install -y pciutils sudo
+log "... packages installed successfully"
 
 # Check if Docker is installed
 if command -v docker &> /dev/null; then
     log "Docker is installed. Configuring NVIDIA Container Toolkit..."
-    $SUDO nvidia-ctk runtime configure --runtime=docker
-    $SUDO apt install -y nvidia-container-toolkit
-    $SUDO systemctl restart docker
+    nvidia-ctk runtime configure --runtime=docker
+    apt install -y nvidia-container-toolkit
+    systemctl restart docker
     log "NVIDIA Container Toolkit configured"
 else
     log "Docker is not installed. Skipping NVIDIA Container Toolkit configuration."
@@ -105,10 +106,10 @@ fi
 # Create user and add to sudo group
 if ! id "$INSTALL_USER" &>/dev/null; then
     log "Creating user $INSTALL_USER"
-    $SUDO useradd -m -s /bin/bash "$INSTALL_USER"
-    $SUDO usermod -aG sudo "$INSTALL_USER"
+    useradd -m -s /bin/bash "$INSTALL_USER"
+    usermod -aG sudo "$INSTALL_USER"
     if command -v docker &> /dev/null; then
-        $SUDO usermod -aG docker "$INSTALL_USER"
+        usermod -aG docker "$INSTALL_USER"
         log "Added $INSTALL_USER to docker group"
     fi
     log "User $INSTALL_USER created and configured"
@@ -118,73 +119,53 @@ fi
 
 # Set up SSH for the new user
 log "Setting up SSH for $INSTALL_USER"
-ssh_setup_output=$($SUDO -u "$INSTALL_USER" bash << EOF
-set -e
-mkdir -p ~/.ssh
-chmod 700 ~/.ssh
-touch ~/.ssh/authorized_keys
-chmod 600 ~/.ssh/authorized_keys
-cat my_public_key.pub >> ~/.ssh/authorized_keys
-echo "SSH setup completed for $INSTALL_USER"
-EOF
-)
-ssh_setup_exit_code=$?
+mkdir -p /home/$INSTALL_USER/.ssh
+chmod 700 /home/$INSTALL_USER/.ssh
+touch /home/$INSTALL_USER/.ssh/authorized_keys
+chmod 600 /home/$INSTALL_USER/.ssh/authorized_keys
+cat /home/$ORIGINAL_USER/my_public_key.pub >> /home/$INSTALL_USER/.ssh/authorized_keys
+chown -R $INSTALL_USER:$INSTALL_USER /home/$INSTALL_USER/.ssh
+log "SSH setup completed for $INSTALL_USER"
 
-if [ $ssh_setup_exit_code -eq 0 ]; then
-    log "$ssh_setup_output"
-else
-    log "ERROR: SSH setup failed for $INSTALL_USER with exit code $ssh_setup_exit_code"
-    log "Error output: $ssh_setup_output"
-    exit 1
-fi
+# Switch to the INSTALL_USER for the rest of the script
+log "Switching to user $INSTALL_USER for the remainder of the installation"
+su - $INSTALL_USER << EOF
+
+# Function for logging (redefined for the new user context)
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] (User: $(whoami)) $1"
+}
 
 # Install NVIDIA AI Workbench
 INSTALL_DIR="/home/$INSTALL_USER/.nvwb/bin"
 log "Creating installation directory: $INSTALL_DIR"
-$SUDO -u "$INSTALL_USER" mkdir -p "$INSTALL_DIR"
+mkdir -p "$INSTALL_DIR"
 
-nvwb_cli_install_output=$($SUDO -u "$INSTALL_USER" bash << EOF
-set -e
+log "Downloading NVIDIA AI Workbench CLI"
 curl -L https://workbench.download.nvidia.com/stable/workbench-cli/\$(curl -L -s https://workbench.download.nvidia.com/stable/workbench-cli/LATEST)/nvwb-cli-\$(uname)-\$(uname -m) --output "$INSTALL_DIR/nvwb-cli"
 chmod +x "$INSTALL_DIR/nvwb-cli"
-echo "NVIDIA AI Workbench CLI downloaded and made executable"
-EOF
-)
-nvwb_cli_install_exit_code=$?
-
-if [ $nvwb_cli_install_exit_code -eq 0 ]; then
-    log "$nvwb_cli_install_output"
-else
-    log "ERROR: NVIDIA AI Workbench CLI installation failed with exit code $nvwb_cli_install_exit_code"
-    log "Error output: $nvwb_cli_install_output"
-    exit 1
-fi
+log "NVIDIA AI Workbench CLI downloaded and made executable"
+log "CLI file details: $(ls -l "$INSTALL_DIR/nvwb-cli")"
 
 # Verify the installation directory and CLI exist
+log "Verifying installation"
 if [ -d "$INSTALL_DIR" ] && [ -x "$INSTALL_DIR/nvwb-cli" ]; then
     log "Installation directory and CLI verified"
 else
     log "ERROR: Installation directory or CLI not found or not executable"
+    log "Directory contents: $(ls -la "$INSTALL_DIR")"
     exit 1
 fi
 
 # Get the uid and gid for the INSTALL_USER
-USER_UID=$(id -u "$INSTALL_USER")
-USER_GID=$(id -g "$INSTALL_USER")
+USER_UID=$(id -u)
+USER_GID=$(id -g)
 
 log "Installing NVIDIA AI Workbench..."
-$SUDO -E "$INSTALL_DIR/nvwb-cli" install --accept --drivers --noninteractive --docker --gid $USER_GID --uid $USER_UID
-
-# Verify the installation
-if [ $? -eq 0 ]; then
-    log "NVIDIA AI Workbench installation completed successfully"
-else
-    log "ERROR: NVIDIA AI Workbench installation failed"
-    exit 1
-fi
+"$INSTALL_DIR/nvwb-cli" install --accept --drivers --noninteractive --docker --gid $USER_GID --uid $USER_UID
 
 log "Verifying workbench service..."
-if $SUDO -u "$INSTALL_USER" "$INSTALL_DIR/nvwb-cli" status | grep -q "Workbench is running"; then
+if "$INSTALL_DIR/nvwb-cli" status | grep -q "Workbench is running"; then
     log "Workbench service is running correctly"
 else
     log "ERROR: Workbench service is not running as expected"
@@ -203,7 +184,7 @@ critical_paths=(
     "/home/$INSTALL_USER/.nvwb/bin/wb-svc"
 )
 
-for path in "${critical_paths[@]}"; do
+for path in "\${critical_paths[@]}"; do
     if [ -e "$path" ]; then
         log "Verified: $path exists"
     else
@@ -212,3 +193,6 @@ for path in "${critical_paths[@]}"; do
 done
 
 log "Script execution completed"
+EOF
+
+log "Installation script finished"
