@@ -278,7 +278,7 @@ log "SSH setup completed for $INSTALL_USER"
 
 # Switch to the INSTALL_USER for the rest of the script
 log "Switching to user $INSTALL_USER for the remainder of the installation"
-$SUDO su - $INSTALL_USER bash << 'EOF' | tee "$LOG_FILE"
+$SUDO su - $INSTALL_USER -c "$(cat << 'EOF'
 
 # Function for logging (redefined for the new user context)
 log() {
@@ -343,5 +343,6 @@ done
 
 log "Script execution completed"
 EOF
+)"
 
 log "Installation script finished"
