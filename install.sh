@@ -309,7 +309,7 @@ USER_UID=\$(id -u)
 USER_GID=\$(id -g)
 
 log "Installing NVIDIA AI Workbench..."
-"\$INSTALL_DIR/nvwb-cli" install --accept --drivers --noninteractive --docker --gid \$USER_GID --uid \$USER_UID
+sudo -E "\$INSTALL_DIR/nvwb-cli" install --accept --drivers --noninteractive --docker --gid \$USER_GID --uid \$USER_UID
 
 log "Verifying workbench service..."
 if "\$INSTALL_DIR/nvwb-cli" status | grep -q "Workbench is running"; then
