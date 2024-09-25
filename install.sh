@@ -6,6 +6,7 @@ set -e
 INSTALL_USER=nvwb-server
 ORIGINAL_USER=$(whoami)
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+LOG_FILE="/tmp/nvwb_install.log"
 
 
 # Set up SUDO variable
@@ -277,7 +278,7 @@ log "SSH setup completed for $INSTALL_USER"
 
 # Switch to the INSTALL_USER for the rest of the script
 log "Switching to user $INSTALL_USER for the remainder of the installation"
-$SUDO su - $INSTALL_USER << EOF
+$SUDO su - $INSTALL_USER bash -c "$(cat << 'EOF' | tee "$LOG_FILE"
 # Function for logging (redefined for the new user context)
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] (User: $(whoami)) \$1"
